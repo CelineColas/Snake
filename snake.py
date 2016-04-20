@@ -8,9 +8,9 @@
 # UTILISES LES FLECHES DIRECTIONNELLES POUR TE DIRIGER
 # MAINTIENS LA BARRE ESPACE POUR ALLER PLUS VITE (attention, le serpent s allonge et prend donc plus de place)
 
-# Le serpent se met a bouger automatiquement après 2 secondes
+# Touche directionnelle pour debuter
 # Il faut cliquer sur la fenetre pour que les touches soient detectees
-# Le jeu se ferme automatiquement 5 secondes apres le game over
+# Le jeu se ferme automatiquement 4 secondes apres le game over
 
 from tkinter import*
 import time
