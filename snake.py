@@ -110,8 +110,8 @@ def verif_collision(): ### Verifie s il ne touche pas un bord ou lui-meme
                     test=True ### indique qu il y a une une modif
 
     for i in range(len(pos_snake)-1): ### Si le serpent se touche lui-meme
-        if pos_snake[i+1][0]-t_s*2+(2*X)*speed<pos_snake[0][0]<pos_snake[i+1][0]+t_s*2+(2*X)*speed:
-            if pos_snake[i+1][1]-t_s*2+(2*X)*speed<pos_snake[0][1]<pos_snake[i+1][1]+t_s*2+(2*X)*speed:
+        if pos_snake[i+1][0]-t_s*2<pos_snake[0][0]<pos_snake[i+1][0]+t_s*2:
+            if pos_snake[i+1][1]-t_s*2<pos_snake[0][1]<pos_snake[i+1][1]+t_s*2:
                 perdu=True
 
     for i in range(len(co_piege)): ### On verifie que le serpent ne se prend pas un piege
