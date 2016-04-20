@@ -1,4 +1,4 @@
-﻿# SNAKE != SNACK
+# SNAKE != SNACK
 
 # ATTRAPE lA BOULE ROUGE
 # EVITE LES BOULES BLEUES
@@ -42,6 +42,7 @@ hauteur=250
 largeur=250
 X=-1 ### Valeurs de départ
 Y=0  ### car il part par la gauche
+longueur_s=30
 
 co_piege=[] ### Coordonnees des pieges
 pieges=[] ### Pieges : objets
@@ -75,10 +76,10 @@ piece=can.create_oval( ### Creation de la 1ere piece : objet
 
 pos_snake=[[largeur/2,hauteur/2]] ### Creation position tete serpent
 
-for i in range(50): ### Creation coordonnees corps serpent
+for i in range(longueur_s): ### Creation coordonnees corps serpent
     pos_snake.append([largeur/2+t_s*2*(i+1),hauteur/2])
 
-for i in range(50): ### Creation corps serpent : objet
+for i in range(longueur_s): ### Creation corps serpent : objet
     corps_snake.append(can.create_oval(
                                         pos_snake[i][0]-t_s,
                                         pos_snake[i][1]-t_s,
@@ -113,11 +114,13 @@ def verif_collision(): ### Verifie s il ne touche pas un bord ou lui-meme
         if pos_snake[i+1][0]-t_s*2<pos_snake[0][0]<pos_snake[i+1][0]+t_s*2:
             if pos_snake[i+1][1]-t_s*2<pos_snake[0][1]<pos_snake[i+1][1]+t_s*2:
                 perdu=True
+                print("serpent se touche")
 
     for i in range(len(co_piege)): ### On verifie que le serpent ne se prend pas un piege
         if co_piege[i][0]-t_s +(2*X)*speed <pos_snake[0][0]<co_piege[i][2]+t_s+(2*X)*speed :
             if  co_piege[i][1]-t_s+(2*X)*speed<pos_snake[0][1]<co_piege[i][3]+t_s+(2*X)*speed :
                 perdu=True
+                print("serpent touche piege")
 
     if test!=True:
         perdu=True
@@ -247,13 +250,15 @@ def boost(event): ### Augmente la vitesse du serpent
     global speed
     if debut==True:
         speed=2
+    else:
+        go()
 
 def nonboost(event): ### Diminue la vitesse du serpent
     global speed
     if debut==True:
         speed=1
 
-def demarrer(): ### Demarre le jeu
+def demarrer(event): ### Demarre le jeu
     if debut==False:
         go()
 
@@ -261,24 +266,30 @@ def demarrer(): ### Demarre le jeu
 
 def k_up(event):
     global direction,speed,X,Y
-    if debut==True and direction!="bas":
+    if direction!="bas":
         direction="haut"
         X=0
         Y=-1
+    if debut==False:
+        go()
 
 def k_down(event):
     global sens,direction,speed,X,Y
-    if debut==True and direction!="haut":
+    if direction!="haut":
         direction="bas"
         X=0
         Y=1
+    if debut==False:
+        go()
 
 def k_left(event):
     global sens,direction,speed,X,Y
-    if debut==True and direction!="droite":
+    if direction!="droite":
         direction="gauche"
         X=-1
         Y=0
+    if debut==False:
+        go()
 
 def k_right(event):
     global sens,direction,speed,X,Y
@@ -300,7 +311,5 @@ fen.bind("<KeyRelease-space>",nonboost)
 fen.bind("<space>",boost)
 
 # # # # # # # # # # # # # # # # # # #
-
-fen.after(2000,demarrer) ### Lancement du jeu automatique apres 2 secondes
 
 fen.mainloop()
