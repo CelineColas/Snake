@@ -8,13 +8,14 @@
 # UTILISES LES FLECHES DIRECTIONNELLES POUR TE DIRIGER
 # MAINTIENS LA BARRE ESPACE POUR ALLER PLUS VITE (attention, le serpent s allonge et prend donc plus de place)
 
-# Touche directionnelle pour debuter
+# Le serpent se met a bouger automatiquement après 2 secondes
 # Il faut cliquer sur la fenetre pour que les touches soient detectees
-# Le jeu se ferme automatiquement 4 secondes apres le game over
+# Le jeu se ferme automatiquement 5 secondes apres le game over
 
 from tkinter import*
 import time
 from random import randrange
+from math import sqrt
 
 fen=Tk()
 can=Canvas(height=250,width=250,bg="black")
@@ -32,11 +33,14 @@ cou_piege="blue"
 sens="horizontal"
 direction="gauche"
 
+inversement=1
+pillule=False
+
 score=0 ### Permet de compter le score
 balise=0 ### Permet d avoir des paliers
 speed=1 ### Permet de changer la "vitesse"
 t_s=1 ### Taille serpent
-t_p=5 ### Taille piece
+t_p=4 ### Taille piece
 t_x=5 ### Taille pieges
 hauteur=250
 largeur=250
@@ -101,6 +105,15 @@ snake=can.create_oval( ### Creation tete serpent : objet
 
 # # # # # # Fonction  # # # # # # #
 
+def collision_detect(obj1,obj2,x1,y1,x2,y2):
+    distance=obj1+obj2
+    x=x1-x2
+    y=y1-y2
+    hypotenuse=sqrt(x*x+y*y)
+    if hypotenuse<distance:
+        return(True)
+    return(False)
+
 def verif_collision(): ### Verifie s il ne touche pas un bord ou lui-meme
     global save2,test,perdu
     if pos_snake[0][0]+t_s +(2*X)*speed <largeur : ### Si depasse pas a droite
@@ -111,22 +124,32 @@ def verif_collision(): ### Verifie s il ne touche pas un bord ou lui-meme
                     test=True ### indique qu il y a une une modif
 
     for i in range(len(pos_snake)-1): ### Si le serpent se touche lui-meme
-        if pos_snake[i+1][0]-t_s*2<pos_snake[0][0]<pos_snake[i+1][0]+t_s*2:
-            if pos_snake[i+1][1]-t_s*2<pos_snake[0][1]<pos_snake[i+1][1]+t_s*2:
-                perdu=True
-                print("serpent se touche")
+        if collision_detect(
+                            t_s,
+                            t_s,
+                            pos_snake[0][0],
+                            pos_snake[0][1],
+                            pos_snake[i+1][0],
+                            pos_snake[i+1][1]) ==True:
+            perdu=True
+            print("serpent se touche")
 
     for i in range(len(co_piege)): ### On verifie que le serpent ne se prend pas un piege
-        if co_piege[i][0]-t_s +(2*X)*speed <pos_snake[0][0]<co_piege[i][2]+t_s+(2*X)*speed :
-            if  co_piege[i][1]-t_s+(2*X)*speed<pos_snake[0][1]<co_piege[i][3]+t_s+(2*X)*speed :
-                perdu=True
-                print("serpent touche piege")
+        if collision_detect(
+                            t_s,
+                            t_x,
+                            pos_snake[0][0],
+                            pos_snake[0][1],
+                            (co_piege[i][0]+co_piege[i][2])/2,
+                            (co_piege[i][1]+co_piege[i][3])/2) ==True:
+            perdu=True
+            print("serpent touche piege")
 
     if test!=True:
         perdu=True
 
 def avancer():
-    global pos_snake,co_piece,perdu,score,piege,balise,pieges,co_piege,test
+    global pos_snake,co_piece,perdu,score,piege,balise,pieges,co_piege,test,pillule,inversement
     test=False
     if score>=5+balise: ### Si on atteint un multiple de 5 dans le score
         balise=score
@@ -190,48 +213,62 @@ def avancer():
                         pos_snake[i][0]+t_s,
                         pos_snake[i][1]+t_s)
             i+=1
+        if collision_detect(t_s,t_p,pos_snake[0][0],pos_snake[0][1],(co_piece[0]+co_piece[2])/2,(co_piece[1]+co_piece[3])/2)==True:
+            score+=1
+            if  pillule==True:
+                inversement=-1
+            else:
+                inversement=1
+            a=randrange(t_p+5,largeur-t_p-5)
+            b=randrange(t_p+5,hauteur-t_p-5)
 
-        if co_piece[0]-t_s<pos_snake[0][0]<co_piece[2]+t_s : ### Si on mange la piece
-            if co_piece[1]-t_s<pos_snake[0][1]<co_piece[3]+t_s :
-                score+=1
-                a=randrange(t_p+5,largeur-t_p-5)
-                b=randrange(t_p+5,hauteur-t_p-5)
+            can.coords( ### alors elle change de place
+                        piece,
+                        a-t_p,
+                        b-t_p,
+                        a+t_p,
+                        b+t_p)
 
-                can.coords( ### alors elle change de place
-                            piece,
-                            a-t_p,
-                            b-t_p,
-                            a+t_p,
-                            b+t_p)
+            co_piece=[ ### Enregistrement des new coordonnees
+                        a-t_p,
+                        b-t_p,
+                        a+t_p,
+                        b+t_p]
 
-                co_piece=[ ### Enregistrement des new coordonnees
-                            a-t_p,
-                            b-t_p,
-                            a+t_p,
-                            b+t_p]
+            value=randrange(0,10)
 
-                for i in range(10): ### On ajoute des points a la queue du serpent
-                    pos_snake.append([
-                                        pos_snake[len(pos_snake)-1][0],
-                                        pos_snake[len(pos_snake)-1][1]])
+            if value==0 and pillule==False:
+                can.itemconfigure(piece, fill="green")
+                can.itemconfigure(piece, outline="green")
+                pillule=True
 
-                    corps_snake.append(can.create_oval(
-                                                        pos_snake[len(pos_snake)-1][0]-t_s,
-                                                        pos_snake[len(pos_snake)-1][1]-t_s,
-                                                        pos_snake[len(pos_snake)-1][0]+t_s,
-                                                        pos_snake[len(pos_snake)-1][1]+t_s,
-                                                        fill=cou_snake,
-                                                        outline=cou_snake)
-                                                        )
-                for i in range(10): ### On les met en place
-                    can.coords(
-                                corps_snake[len(corps_snake)-11+i],
-                                pos_snake[len(corps_snake)-10+i][0]-t_s,
-                                pos_snake[len(corps_snake)-10+i][1]-t_s,
-                                pos_snake[len(corps_snake)-10+i][0]+t_s,
-                                pos_snake[len(corps_snake)-10+i][1]+t_s)
+            elif pillule==True:
+                can.itemconfigure(piece, fill="red")
+                can.itemconfigure(piece, outline="red")
+                pillule=False
 
-    fen.after(10,go)
+            for i in range(10): ### On ajoute des points a la queue du serpent
+                pos_snake.append([
+                                    pos_snake[len(pos_snake)-1][0],
+                                    pos_snake[len(pos_snake)-1][1]])
+
+                corps_snake.append(can.create_oval(
+                                                    pos_snake[len(pos_snake)-1][0]-t_s,
+                                                    pos_snake[len(pos_snake)-1][1]-t_s,
+                                                    pos_snake[len(pos_snake)-1][0]+t_s,
+                                                    pos_snake[len(pos_snake)-1][1]+t_s,
+                                                    fill=cou_snake,
+                                                    outline=cou_snake)
+                                                    )
+            for i in range(10): ### On les met en place
+                can.coords(
+                            corps_snake[len(corps_snake)-11+i],
+                            pos_snake[len(corps_snake)-10+i][0]-t_s,
+                            pos_snake[len(corps_snake)-10+i][1]-t_s,
+                            pos_snake[len(corps_snake)-10+i][0]+t_s,
+                            pos_snake[len(corps_snake)-10+i][1]+t_s)
+
+    fen.after(30,go)
 
 
 def go(): ### Si on a pas perdu, le serpent continue d avancer
@@ -266,37 +303,37 @@ def demarrer(event): ### Demarre le jeu
 
 def k_up(event):
     global direction,speed,X,Y
-    if direction!="bas":
+    if direction!="bas" and direction!="haut":
         direction="haut"
-        X=0
-        Y=-1
+        X=0*inversement
+        Y=-1*inversement
     if debut==False:
         go()
 
 def k_down(event):
     global sens,direction,speed,X,Y
-    if direction!="haut":
+    if direction!="haut" and direction !="bas":
         direction="bas"
-        X=0
-        Y=1
+        X=0*inversement
+        Y=1*inversement
     if debut==False:
         go()
 
 def k_left(event):
     global sens,direction,speed,X,Y
-    if direction!="droite":
+    if direction!="droite" and direction!="gauche":
         direction="gauche"
-        X=-1
-        Y=0
+        X=-1*inversement
+        Y=0*inversement
     if debut==False:
         go()
 
 def k_right(event):
     global sens,direction,speed,X,Y
-    if debut==True and direction!="gauche":
+    if debut==True and direction!="gauche" and direction!="droite":
         direction="droite"
-        X=1
-        Y=0
+        X=1*inversement
+        Y=0*inversement
 
 
 # # # # # # # # # # # # #  # # # # #
